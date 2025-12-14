@@ -2,6 +2,15 @@
 
 How to Run in Local: yarn start:dev
 
+## New Attendance Module
+
+- npx nest g resource attendance
+  - Transport layer: REST API
+  - CRUD endpoints: Yes
+- move the generated directory into src/modules
+  - also update import in src/app.module.ts
+- adapt to existing code style
+
 ## Local Setup Steps
 
 - git init
