@@ -13,6 +13,7 @@ import { DatabaseConfigService } from './shared/config/database.service';
 import { SharedModule } from './shared/shared.module';
 import { TransformResponseInterceptor } from './interceptors/transform-response.interceptor';
 import { JwtAuthGuard } from './modules/auth/auth.guard';
+import { BaseEntity, DataSource } from 'typeorm';
 
 async function bootstrap(): Promise<NestExpressApplication> {
   const app = await NestFactory.create<NestExpressApplication>(
@@ -23,6 +24,8 @@ async function bootstrap(): Promise<NestExpressApplication> {
       cors: true,
     },
   );
+  const dataSource = app.get(DataSource);
+  BaseEntity.useDataSource(dataSource);
   app.setGlobalPrefix('api');
   app.use(helmet());
   app.enable('trust proxy');
