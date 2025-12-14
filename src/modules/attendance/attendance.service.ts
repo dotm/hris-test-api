@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { Attendance } from './entities/attendance.entity';
-import { convertToAttendanceDateString } from 'src/helpers/attendance-date.helpers';
 import { AttendanceDto } from './dto/attendance.dto';
 import { UpsertAttendanceDto } from './dto/upsert-attendance.dto';
 import { GetAttendanceDto } from './dto/get-attendance.dto';
@@ -24,11 +23,11 @@ export class AttendanceService {
     return { attendances: attendanceDto, count, meta };
   }
 
-  async findOne(options: { staffId: string, date: Date }): Promise<AttendanceDto | null> {
+  async findOne(options: { staffId: string, date: string }): Promise<AttendanceDto | null> {
     const attendance = await Attendance.findOne({
       where: {
         staffId: options.staffId,
-        date: convertToAttendanceDateString(options.date),
+        date: options.date,
       },
     });
     if (!attendance) return null;

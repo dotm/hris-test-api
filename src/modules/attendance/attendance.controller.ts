@@ -4,6 +4,7 @@ import { convertToAttendanceDateString } from 'src/helpers/attendance-date.helpe
 import { UpsertAttendanceDto } from './dto/upsert-attendance.dto';
 import { Request } from 'express';
 import { GetAttendanceDto } from './dto/get-attendance.dto';
+import { AlreadyClockedInError, AlreadyClockedOutError } from 'src/errors/ResourceError';
 
 @Controller({ version: '1', path: 'attendances' })
 export class AttendanceController {
@@ -17,6 +18,10 @@ export class AttendanceController {
       date: convertToAttendanceDateString(now),
       clockIn: now,
     })
+
+    const existingDay = await this.attendanceService.findOne(upsertAttendanceDto);
+    if (!!existingDay?.clockIn) return AlreadyClockedInError()
+    
     return await this.attendanceService.upsert(upsertAttendanceDto);
   }
 
@@ -28,6 +33,10 @@ export class AttendanceController {
       date: convertToAttendanceDateString(now),
       clockOut: now,
     })
+
+    const existingDay = await this.attendanceService.findOne(upsertAttendanceDto);
+    if (!!existingDay?.clockOut) return AlreadyClockedOutError()
+    
     return await this.attendanceService.upsert(upsertAttendanceDto);
   }
 

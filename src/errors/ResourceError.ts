@@ -2,6 +2,25 @@ import { HttpStatus } from '@nestjs/common';
 import ApiError from './ApiError';
 
 /**
+ * Attendance-Related Errors
+ */
+export const AlreadyClockedInError = () => {
+  throw new ApiError(
+    HttpStatus.BAD_REQUEST,
+    'Already clocked in',
+    'Already clocked in before',
+  );
+};
+
+export const AlreadyClockedOutError = () => {
+  throw new ApiError(
+    HttpStatus.BAD_REQUEST,
+    'Already clocked out',
+    'Already clocked out before',
+  );
+};
+
+/**
  * Admin-Related Errors
  */
 export const NoStaffFoundError = () => {
