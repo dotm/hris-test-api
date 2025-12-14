@@ -1,0 +1,31 @@
+FROM hris-base AS build
+
+# Set env to prod for all build steps
+ENV PORT=8080 \
+    LANG=en_US.UTF-8
+
+WORKDIR /root/hris
+
+ENV NVM_DIR=/root/.nvm
+ENV NODE_VERSION=22.21.1
+ENV PATH=$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
+RUN npm install -g yarn
+
+# First, copy files least likely to change
+COPY nest-cli.json ./
+COPY package.json ./
+COPY tsconfig.build.json ./
+COPY tsconfig.json ./
+COPY yarn.lock ./
+
+# Fetch deps
+RUN yarn install
+
+# Now copy application code
+COPY src ./src
+
+COPY .env.production ./.env.production
+
+# Build the release
+RUN yarn build
+RUN tar -czvf hris.tar.gz dist/

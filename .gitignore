@@ -1,6 +1,7 @@
 # compiled output
 /dist
 /node_modules
+tar-release
 
 # Logs
 logs
@@ -13,6 +14,8 @@ lerna-debug.log*
 
 .DS_Store
 .idea
+
+hris-test-ec2-key-pair.pem
 
 # Ignore all .env files
 .env*

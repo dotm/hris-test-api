@@ -43,6 +43,94 @@ How to Run in Local: yarn start:dev
     - click Send (blue button)
 - all endpoints can be tested in Postman using the same method as seeding other users above
 
+## First Deployment Steps
+
+Create EC2 Instance:
+
+- Name: HRIS Coding Test
+- Quick Start: Ubuntu Server 24.04 LTS 64-bit
+- Instance type: t2.micro
+- Create new key pair: hris-test-ec2-key-pair.pem
+- Create security group
+  - Allow SSH, HTTPS, HTTP traffic from Anywhere
+- 8 GiB gp3
+- Number of instances: 1
+- Finally, click Launch instance
+- Connect to the instance using SSH
+  - https://ap-southeast-1.console.aws.amazon.com/ec2/home?region=ap-southeast-1#InstanceDetails:instanceId=i-0d4ce406558ef990f
+  - ssh -i "hris-test-ec2-key-pair.pem" ubuntu@ec2-13-229-208-46.ap-southeast-1.compute.amazonaws.com
+
+Local Docker Build:
+
+- Make sure Docker is running in host
+- docker build -f Dockerfile.build_base -t hris-base .
+- Manual verification:
+  - docker run -it -p 3000:3000 hris-base bash
+  - node -v
+    - use this as NODE_VERSION in Dockerfile.release
+  - nvm current
+  - npm -v
+  - exit
+- Fill .env.production with environment variables
+- docker build -f Dockerfile.release -t hris-release .
+- Optional step: docker run -it -p 3000:3000 hris-release bash
+  - Do this only if you want to test the release in local
+- docker create --name hris-tar hris-release
+- From host (if you haven't): mkdir tar-release
+  - also add this directory to .gitignore
+- docker cp hris-tar:/root/hris/hris.tar.gz ./tar-release/hris.tar.gz
+- docker rm hris-tar
+
+Setup instance:
+
+- sudo apt update
+- sudo apt install nodejs npm -y
+- node -v
+- npm -v
+- sudo apt remove nginx -y
+- mkdir backend
+
+Upload build:
+- scp -i "hris-test-ec2-key-pair.pem" ./tar-release/hris.tar.gz ubuntu@ec2-13-229-208-46.ap-southeast-1.compute.amazonaws.com:~/backend
+- scp -i "hris-test-ec2-key-pair.pem" ./package.json ubuntu@ec2-13-229-208-46.ap-southeast-1.compute.amazonaws.com:~/backend
+- scp -i "hris-test-ec2-key-pair.pem" ./.env.production ubuntu@ec2-13-229-208-46.ap-southeast-1.compute.amazonaws.com:~/backend/.env
+- ssh -i "hris-test-ec2-key-pair.pem" ubuntu@ec2-13-229-208-46.ap-southeast-1.compute.amazonaws.com
+  - cd ~/backend
+  - tar -xzvf hris.tar.gz
+
+Create Local Database in Production Server Instance:
+- sudo apt install -y postgresql postgresql-contrib
+- psql --version
+- sudo systemctl status postgresql
+  - sudo systemctl start postgresql
+  - sudo systemctl enable postgresql
+- Connect to production database: sudo -i -u postgres
+  - psql
+    - CREATE DATABASE hris;
+    - ALTER USER postgres WITH PASSWORD 'insert_password';
+    - exit
+  - exit
+- Update the .env.production
+- After starting pm2, connect to production database and seed users data:
+  - psql -h localhost -U postgres -d hris
+```sql
+INSERT INTO staff (id,staff_id,first_name,last_name,email,password_hash,access_token,username) VALUES
+  ('1a6fcae9-21f8-4c6d-b28f-30e7879ea704','awikwok','Ichsan','Natawijaya','icanx@hotmail.com','$2b$10$fvOmDpMbuaUMWkEzhtZwueB9qPauF9jCY7jx4ykiQ3GD/QHOJPfIO','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhNmZjYWU5LTIxZjgtNGM2ZC1iMjhmLTMwZTc4NzllYTcwNCIsInR5cGUiOiJBQ0NFU1NfVE9LRU4iLCJpYXQiOjE3NjU2ODI2NzcsImV4cCI6MTc2NTc2OTA3N30.IIpBBbBGKwPr5kWQ1828RV7a4BcLBtNpq76-v-v4boY','icanq'),
+  ('09c58ddf-d3bf-4b95-9fa4-037292fa8244','su','Super','Admin','superadmin@yopmail.com','$2b$10$0ncUVVcilW3PkDXZ4iui3.dNCS1gwexl3rvlPyK3aQUHW56bmOFYO','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA5YzU4ZGRmLWQzYmYtNGI5NS05ZmE0LTAzNzI5MmZhODI0NCIsInR5cGUiOiJBQ0NFU1NfVE9LRU4iLCJpYXQiOjE3NjU2ODI5OTcsImV4cCI6MTc2NTc2OTM5N30.jn88m8zqWTJ8PwdA2mJMZAR37kk3RtMwoNR2TdCvYJ0','superadmin');
+```
+
+Serve:
+
+- sudo npm install -g serve
+- sudo npm install -g pm2
+- cd ~/backend
+- npx yarn install --production
+- sudo pm2 start dist/main.js --name hris-api
+  - sudo pm2 logs hris-api
+  - sudo pm2 kill
+- Seed user data (see above)
+- Test login using Postman
+
 # Kotakodelab Full-Stack / Backend homework (TypeScript, REST API)
 
 Welcome to the Kotakodelab work sample for Full-Stack developers (TypeScript & NestJS)! This is our way to get some experience working with you and to gauge your skill in using TypeScript and the databases. There is no official time-limit for this exercise, but you should finish it within a week. We encourqage you to take the time you need in order to **provide quality work that best reflects your skills**
