@@ -1,3 +1,39 @@
+# Notes
+
+How to Run in Local: yarn start:dev
+
+## Local Setup Steps
+
+- git init
+- yarn install
+- create local DB
+- ignore env files (see git commit)
+- add and fill .env.local file
+  - update nestserver Postman variable to http://localhost:8080/api/v1
+  - point to local DB
+- cp .env.local .env
+- yarn start:dev
+- fix ERROR DataSource is not set for this entity (see git commit)
+- fix ERROR No metadata for "Staff" was found (see git commit)
+- seed superadmin user manually
+  - add this in staff.controller.ts:
+    - import { Public } from 'src/decorators/public.decorator';
+    - add @Public temporarily to @Post() async create
+  - Hit the create staff API to add:
+    - email: superadmin@yopmail.com
+    - pass: apaajaboleh
+  - undo changes in staff.controller.ts (remove @Public)
+- seed other users:
+  - in Postman, hit auth/login with superadmin credential
+  - copy the accessToken from the response
+  - hit the POST staff using Bearer Token:
+    - click on the POST request
+    - Click Authorization (on the right of Params)
+    - select Bearer Token as Auth Type
+    - paste the token from login response
+    - click Send (blue button)
+- all endpoints can be tested in Postman using the same method as seeding other users above
+
 # Kotakodelab Full-Stack / Backend homework (TypeScript, REST API)
 
 Welcome to the Kotakodelab work sample for Full-Stack developers (TypeScript & NestJS)! This is our way to get some experience working with you and to gauge your skill in using TypeScript and the databases. There is no official time-limit for this exercise, but you should finish it within a week. We encourqage you to take the time you need in order to **provide quality work that best reflects your skills**
