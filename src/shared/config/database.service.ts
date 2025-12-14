@@ -55,6 +55,7 @@ export class DatabaseConfigService {
       synchronize: true,
       logging: this.getBoolean('ENABLE_ORM_LOGS'),
       namingStrategy: new SnakeNamingHelpers(),
+      autoLoadEntities: true,
     };
   }
 
